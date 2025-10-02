@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 # ===== Load & preprocess data =====
 recdata = pd.read_excel('KPI Team.xlsx', sheet_name='Blad1', header=1)
@@ -57,13 +58,6 @@ targets = {
 
 # ===== Function to create donut chart with consistent colors =====
 def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
-    """
-    kpi_name: str, naam van de KPI
-    avg_value: float, behaalde waarde
-    target: float, doelwaarde
-    title: str, titel van de grafiek
-    color: str, kleur voor het behaalde gedeelte
-    """
     remaining = max(target - avg_value, 0)
     fig = px.pie(
         names=[kpi_name, "Nog te behalen"],
@@ -73,6 +67,29 @@ def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
     )
     fig.update_traces(textinfo='percent+label')
     fig.update_layout(title_text=title)
+    return fig
+
+# ===== Function to create per-recruiter stacked bar chart =====
+def plot_kpi_per_recruiter(df, kpi_col, target, title, color):
+    remaining = df[kpi_col].apply(lambda x: max(target - x, 0))
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=df["Name"],
+        y=df[kpi_col],
+        name=kpi_col,
+        marker_color=color
+    ))
+    fig.add_trace(go.Bar(
+        x=df["Name"],
+        y=remaining,
+        name="Nog te behalen",
+        marker_color="#E5ECF6"
+    ))
+    fig.update_layout(
+        barmode='stack',
+        title=title,
+        yaxis=dict(title=kpi_col)
+    )
     return fig
 
 # ===== Streamlit layout =====
@@ -109,19 +126,19 @@ with tab1:
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        fig_inmails = px.bar(recdata, x="Name", y="InMails", title="InMails per Recruiter")
+        fig_inmails = plot_kpi_per_recruiter(recdata, "InMails", targets["InMails"], "InMails per Recruiter", "#636EFA")
         st.plotly_chart(fig_inmails, use_container_width=True)
 
     with col2:
-        fig_coldcalls = px.bar(recdata, x="Name", y="Cold call", title="Cold Calls per Recruiter")
+        fig_coldcalls = plot_kpi_per_recruiter(recdata, "Cold call", targets["Cold call"], "Cold Calls per Recruiter", "#EF553B")
         st.plotly_chart(fig_coldcalls, use_container_width=True)
 
     with col3:
-        fig_response = px.bar(recdata, x="Name", y="Response rate", title="Response Rate per Recruiter")
+        fig_response = plot_kpi_per_recruiter(recdata, "Response rate", targets["Response rate"], "Response Rate per Recruiter", "#00CC96")
         st.plotly_chart(fig_response, use_container_width=True)
 
     with col4:
-        fig_qualification = px.bar(recdata, x="Name", y="Qualification", title="Qualification per Recruiter")
+        fig_qualification = plot_kpi_per_recruiter(recdata, "Qualification", targets["Qualification"], "Qualification per Recruiter", "#AB63FA")
         st.plotly_chart(fig_qualification, use_container_width=True)
 
 with tab2:
