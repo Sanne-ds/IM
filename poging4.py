@@ -43,11 +43,10 @@ targets = {
     "Qualification": 15
 }
 
-# ===== Function to create donut chart with central percentage =====
+# ===== Donut chart function =====
 def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
     remaining = max(target - avg_value, 0)
     values = [min(avg_value, target), remaining]
-
     percent_achieved = min(avg_value / target * 100, 100) if target > 0 else 0
 
     fig = px.pie(
@@ -57,26 +56,17 @@ def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
         color_discrete_sequence=[color, "#E5ECF6"],
         height=300
     )
-
-    # Verwijder labels van segmenten
     fig.update_traces(textinfo='none', sort=False)
-
-    # Voeg percentage in het midden toe
     fig.add_annotation(
         text=f"{percent_achieved:.0f}%",
         x=0.5, y=0.5,
         font_size=28,
         showarrow=False
     )
-
-    fig.update_layout(
-        title_text=title,
-        margin=dict(t=40, b=0, l=0, r=0)
-    )
-
+    fig.update_layout(title_text=title, margin=dict(t=40, b=0, l=0, r=0))
     return fig
 
-# ===== Function to create response rate progress bar =====
+# ===== Response rate progress bar =====
 def plot_response_rate_bar(avg_value, target):
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -86,7 +76,6 @@ def plot_response_rate_bar(avg_value, target):
         marker=dict(color="#00CC96"),
         width=0.6
     ))
-
     fig.add_shape(
         type="line",
         x0=target*100, x1=target*100,
@@ -94,7 +83,6 @@ def plot_response_rate_bar(avg_value, target):
         line=dict(color="red", width=4, dash="dash"),
         xref="x", yref="y"
     )
-
     fig.update_layout(
         xaxis=dict(range=[0,100], title="Percentage (%)"),
         yaxis=dict(showticklabels=False),
@@ -103,12 +91,11 @@ def plot_response_rate_bar(avg_value, target):
         margin=dict(l=20, r=20, t=60, b=20),
         title=dict(text="Gemiddelde Response Rate", x=0.5, xanchor='center', yanchor='top')
     )
-
     return fig
 
-# ===== Create color mapping for individual recruiters =====
+# ===== Color mapping for recruiters =====
 recruiters = recdata['Name'].unique()
-colors = px.colors.qualitative.Set3  # 12 kleuren
+colors = px.colors.qualitative.Set3
 colors = (colors * ((len(recruiters)//len(colors))+1))[:len(recruiters)]
 color_map = dict(zip(recruiters, colors))
 
@@ -121,47 +108,87 @@ tab1, tab2 = st.tabs(["Input KPI's", "Output KPI's"])
 with tab1:
     st.header("Input KPI's")
 
-    # --- Gemiddelde KPI's als donut charts in 3 kolommen ---
+    # --- Donut charts ---
     col1, col2, col3 = st.columns(3)
     with col1:
-        fig_avg_inmails = plot_donut("InMails", avg_inmails, targets["InMails"], "Gemiddelde InMails", color="#636EFA")
-        st.plotly_chart(fig_avg_inmails, use_container_width=True)
+        st.plotly_chart(plot_donut("InMails", avg_inmails, targets["InMails"], "Gemiddelde InMails", color="#636EFA"), use_container_width=True)
     with col2:
-        fig_avg_coldcalls = plot_donut("Cold Calls", avg_coldcalls, targets["Cold call"], "Gemiddelde Cold Calls", color="#EF553B")
-        st.plotly_chart(fig_avg_coldcalls, use_container_width=True)
+        st.plotly_chart(plot_donut("Cold Calls", avg_coldcalls, targets["Cold call"], "Gemiddelde Cold Calls", color="#EF553B"), use_container_width=True)
     with col3:
-        fig_avg_qualification = plot_donut("Qualification", avg_qualification, targets["Qualification"], "Gemiddelde Kwalificatiecalls", color="#AB63FA")
-        st.plotly_chart(fig_avg_qualification, use_container_width=True)
+        st.plotly_chart(plot_donut("Qualification", avg_qualification, targets["Qualification"], "Gemiddelde Kwalificatiecalls", color="#AB63FA"), use_container_width=True)
 
-    # --- Gemiddelde Response Rate progressbar in eigen rij ---
-    fig_avg_response_bar = plot_response_rate_bar(avg_response, targets['Response rate'])
-    st.plotly_chart(fig_avg_response_bar, use_container_width=True)
+    # --- Response Rate progress bar ---
+    st.plotly_chart(plot_response_rate_bar(avg_response, targets['Response rate']), use_container_width=True)
 
-    # --- Per recruiter breakdown met individuele kleuren ---
+    # --- Per recruiter breakdown met individuele kleuren en targetlijnen ---
     st.subheader("Per Recruiter Breakdown")
     col1, col2, col3, col4 = st.columns(4)
+
+    # InMails
     with col1:
         fig_inmails = px.bar(
-            recdata, x="Name", y="InMails", title="InMails per Recruiter",
-            color="Name", color_discrete_map=color_map, height=300
+            recdata, x="Name", y="InMails", color="Name",
+            color_discrete_map=color_map, height=300
+        )
+        fig_inmails.update_layout(
+            yaxis=dict(range=[0, 200]),
+            title="InMails per Recruiter"
+        )
+        fig_inmails.add_shape(
+            type="line", x0=-0.5, x1=len(recruiters)-0.5,
+            y0=100, y1=100,
+            line=dict(color="red", width=3, dash="dash")
         )
         st.plotly_chart(fig_inmails, use_container_width=True)
+
+    # Cold Calls
     with col2:
         fig_coldcalls = px.bar(
-            recdata, x="Name", y="Cold call", title="Cold Calls per Recruiter",
-            color="Name", color_discrete_map=color_map, height=300
+            recdata, x="Name", y="Cold call", color="Name",
+            color_discrete_map=color_map, height=300
+        )
+        fig_coldcalls.update_layout(
+            yaxis=dict(range=[0, 100]),
+            title="Cold Calls per Recruiter"
+        )
+        fig_coldcalls.add_shape(
+            type="line", x0=-0.5, x1=len(recruiters)-0.5,
+            y0=20, y1=20,
+            line=dict(color="red", width=3, dash="dash")
         )
         st.plotly_chart(fig_coldcalls, use_container_width=True)
+
+    # Response Rate
     with col3:
         fig_response = px.bar(
-            recdata, x="Name", y="Response rate", title="Response Rate per Recruiter",
-            color="Name", color_discrete_map=color_map, height=300
+            recdata, x="Name", y=recdata["Response rate"]*100, color="Name",
+            color_discrete_map=color_map, height=300
+        )
+        fig_response.update_layout(
+            yaxis=dict(range=[0, 100], title="%"),
+            title="Response Rate per Recruiter"
+        )
+        fig_response.add_shape(
+            type="line", x0=-0.5, x1=len(recruiters)-0.5,
+            y0=25, y1=25,
+            line=dict(color="red", width=3, dash="dash")
         )
         st.plotly_chart(fig_response, use_container_width=True)
+
+    # Qualification
     with col4:
         fig_qualification = px.bar(
-            recdata, x="Name", y="Qualification", title="Qualification per Recruiter",
-            color="Name", color_discrete_map=color_map, height=300
+            recdata, x="Name", y="Qualification", color="Name",
+            color_discrete_map=color_map, height=300
+        )
+        fig_qualification.update_layout(
+            yaxis=dict(range=[0, 30]),
+            title="Qualification per Recruiter"
+        )
+        fig_qualification.add_shape(
+            type="line", x0=-0.5, x1=len(recruiters)-0.5,
+            y0=15, y1=15,
+            line=dict(color="red", width=3, dash="dash")
         )
         st.plotly_chart(fig_qualification, use_container_width=True)
 
