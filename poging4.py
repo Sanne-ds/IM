@@ -130,15 +130,8 @@ with tab1:
             recdata, x="Name", y="InMails", color="Name",
             color_discrete_map=color_map, height=300
         )
-        fig_inmails.update_layout(
-            yaxis=dict(range=[0, 200]),
-            title="InMails per Recruiter"
-        )
-        fig_inmails.add_shape(
-            type="line", x0=-0.5, x1=len(recruiters)-0.5,
-            y0=100, y1=100,
-            line=dict(color="red", width=3, dash="dash")
-        )
+        fig_inmails.update_layout(yaxis=dict(range=[0,200]), title="InMails per Recruiter")
+        fig_inmails.add_hline(y=100, line_dash="dash", line_color="red", line_width=3)
         st.plotly_chart(fig_inmails, use_container_width=True)
 
     # Cold Calls
@@ -147,32 +140,18 @@ with tab1:
             recdata, x="Name", y="Cold call", color="Name",
             color_discrete_map=color_map, height=300
         )
-        fig_coldcalls.update_layout(
-            yaxis=dict(range=[0, 100]),
-            title="Cold Calls per Recruiter"
-        )
-        fig_coldcalls.add_shape(
-            type="line", x0=-0.5, x1=len(recruiters)-0.5,
-            y0=20, y1=20,
-            line=dict(color="red", width=3, dash="dash")
-        )
+        fig_coldcalls.update_layout(yaxis=dict(range=[0,100]), title="Cold Calls per Recruiter")
+        fig_coldcalls.add_hline(y=20, line_dash="dash", line_color="red", line_width=3)
         st.plotly_chart(fig_coldcalls, use_container_width=True)
 
-    # Response Rate
+    # Response Rate (%)
     with col3:
         fig_response = px.bar(
             recdata, x="Name", y=recdata["Response rate"]*100, color="Name",
             color_discrete_map=color_map, height=300
         )
-        fig_response.update_layout(
-            yaxis=dict(range=[0, 100], title="%"),
-            title="Response Rate per Recruiter"
-        )
-        fig_response.add_shape(
-            type="line", x0=-0.5, x1=len(recruiters)-0.5,
-            y0=25, y1=25,
-            line=dict(color="red", width=3, dash="dash")
-        )
+        fig_response.update_layout(yaxis=dict(range=[0,100], title="%"), title="Response Rate per Recruiter")
+        fig_response.add_hline(y=25, line_dash="dash", line_color="red", line_width=3)
         st.plotly_chart(fig_response, use_container_width=True)
 
     # Qualification
@@ -181,15 +160,8 @@ with tab1:
             recdata, x="Name", y="Qualification", color="Name",
             color_discrete_map=color_map, height=300
         )
-        fig_qualification.update_layout(
-            yaxis=dict(range=[0, 30]),
-            title="Qualification per Recruiter"
-        )
-        fig_qualification.add_shape(
-            type="line", x0=-0.5, x1=len(recruiters)-0.5,
-            y0=15, y1=15,
-            line=dict(color="red", width=3, dash="dash")
-        )
+        fig_qualification.update_layout(yaxis=dict(range=[0,30]), title="Qualification per Recruiter")
+        fig_qualification.add_hline(y=15, line_dash="dash", line_color="red", line_width=3)
         st.plotly_chart(fig_qualification, use_container_width=True)
 
 with tab2:
