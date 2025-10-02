@@ -4,14 +4,11 @@ import pandas as pd
 import plotly.express as px
 
 # ===== Load & preprocess data =====
-# Let op: Zorg ervoor dat het Excel-bestand 'KPI Team.xlsx' in dezelfde map staat
-# of geef het juiste pad naar het bestand op.
 try:
     recdata = pd.read_excel('KPI Team.xlsx', sheet_name='Blad1', header=1)
 except FileNotFoundError:
     st.error("Bestand 'KPI Team.xlsx' niet gevonden. Zorg ervoor dat het bestand in de juiste map staat.")
     st.stop()
-
 
 # Remove erroneous rows safely
 recdata = recdata.drop(index=[37, 38, 39, 40], errors='ignore')
@@ -25,7 +22,6 @@ if 'Begin datum' in recdata.columns and not recdata['Begin datum'].isnull().all(
     recdata['Week'] = recdata['Begin datum'].dt.isocalendar().week
 else:
     recdata['Week'] = 0
-
 
 # Fill NaNs and replace 'holiday' entries
 recdata = recdata.fillna(0)
@@ -86,8 +82,7 @@ def plot_donut(kpi_name, avg_value, target, title):
     achieved = min(avg_value, target)
     remaining = max(target - avg_value, 0)
 
-    # 1. De volgorde hier bepaalt de volgorde in de grafiek.
-    #    Behaalde resultaat (`kpi_name`) staat dus altijd eerst.
+    # DataFrame: behaalde waarde altijd eerst
     df = pd.DataFrame({
         "Categorie": [kpi_name, "Nog te behalen"],
         "Waarde": [achieved, remaining]
@@ -103,9 +98,7 @@ def plot_donut(kpi_name, avg_value, target, title):
         values="Waarde",
         hole=0.5,
         title=title,
-        color="Categorie", # Vertelt Plotly om te kleuren op basis van de "Categorie" kolom
-        # 2. 'color_discrete_map' koppelt elke Categorie aan een vaste kleur.
-        #    'Nog te behalen' wordt dus altijd grijs.
+        color="Categorie",
         color_discrete_map={
             kpi_name: color,
             "Nog te behalen": "#E5ECF6"
@@ -113,7 +106,9 @@ def plot_donut(kpi_name, avg_value, target, title):
     )
 
     fig.update_layout(showlegend=False, title_x=0.5)
-    fig.update_traces(textinfo='percent+label', textfont_size=14)
+    
+    # Alleen percentage tonen, geen label
+    fig.update_traces(textinfo='percent', textfont_size=14, sort=False, direction='clockwise', rotation=90)
 
     return fig
 
