@@ -55,17 +55,23 @@ targets = {
     "Qualification": 15
 }
 
-# ===== Function to create donut chart =====
-def plot_donut(kpi_name, avg_value, target, title):
+# ===== Function to create donut chart with consistent colors =====
+def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
+    """
+    kpi_name: str, naam van de KPI
+    avg_value: float, behaalde waarde
+    target: float, doelwaarde
+    title: str, titel van de grafiek
+    color: str, kleur voor het behaalde gedeelte
+    """
     remaining = max(target - avg_value, 0)
     fig = px.pie(
-        names=[kpi_name, f"Nog te behalen"],
+        names=[kpi_name, "Nog te behalen"],
         values=[avg_value, remaining],
         hole=0.5,
-        color_discrete_sequence=["#636EFA", "#E5ECF6"],
+        color_discrete_sequence=[color, "#E5ECF6"],  # Grijs voor niet behaalde
     )
-    # Start de donut bovenin (12 uur)
-    fig.update_traces(rotation=90, textinfo='percent+label', sort=False)
+    fig.update_traces(textinfo='percent+label')
     fig.update_layout(title_text=title)
     return fig
 
@@ -83,19 +89,19 @@ with tab1:
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        fig_avg_inmails = plot_donut("InMails", avg_inmails, targets["InMails"], "Gemiddelde InMails")
+        fig_avg_inmails = plot_donut("InMails", avg_inmails, targets["InMails"], "Gemiddelde InMails", color="#636EFA")
         st.plotly_chart(fig_avg_inmails, use_container_width=True)
 
     with col2:
-        fig_avg_coldcalls = plot_donut("Cold Calls", avg_coldcalls, targets["Cold call"], "Gemiddelde Cold Calls")
+        fig_avg_coldcalls = plot_donut("Cold Calls", avg_coldcalls, targets["Cold call"], "Gemiddelde Cold Calls", color="#EF553B")
         st.plotly_chart(fig_avg_coldcalls, use_container_width=True)
 
     with col3:
-        fig_avg_response = plot_donut("Response Rate", avg_response, targets["Response rate"], "Gemiddelde Response Rate")
+        fig_avg_response = plot_donut("Response Rate", avg_response, targets["Response rate"], "Gemiddelde Response Rate", color="#00CC96")
         st.plotly_chart(fig_avg_response, use_container_width=True)
 
     with col4:
-        fig_avg_qualification = plot_donut("Qualification", avg_qualification, targets["Qualification"], "Gemiddelde Kwalificatiecalls")
+        fig_avg_qualification = plot_donut("Qualification", avg_qualification, targets["Qualification"], "Gemiddelde Kwalificatiecalls", color="#AB63FA")
         st.plotly_chart(fig_avg_qualification, use_container_width=True)
 
     # --- Per recruiter breakdown ---
