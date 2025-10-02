@@ -107,7 +107,6 @@ with tab1:
         st.plotly_chart(fig_avg_qualification, use_container_width=True)
 
     # --- Gemiddelde Response Rate progressbar in eigen rij ---
-    st.markdown("### Gemiddelde Response Rate")
     fig_avg_response_bar = plot_response_rate_bar(avg_response, targets['Response rate'])
     st.plotly_chart(fig_avg_response_bar, use_container_width=True)
 
