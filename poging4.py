@@ -1,8 +1,8 @@
 # ===== Import libraries =====
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
+import plotly.express as px
 
 # ===== Load & preprocess data =====
 recdata = pd.read_excel('KPI Team.xlsx', sheet_name='Blad1', header=1)
@@ -99,6 +99,22 @@ colors = px.colors.qualitative.Set3
 colors = (colors * ((len(recruiters)//len(colors))+1))[:len(recruiters)]
 color_map = dict(zip(recruiters, colors))
 
+# ===== Function to create individual bar chart with target =====
+def bar_chart_with_target(y_values, y_max, target, title):
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=recdata['Name'],
+        y=y_values,
+        marker_color=[color_map[name] for name in recdata['Name']]
+    ))
+    fig.update_layout(
+        yaxis=dict(range=[0, y_max]),
+        title=title,
+        height=300
+    )
+    fig.add_hline(y=target, line_dash="dash", line_color="red", line_width=3)
+    return fig
+
 # ===== Streamlit layout =====
 st.set_page_config(page_title="Recruitment KPI Dashboard", layout="wide")
 st.title("📊 Recruitment KPI Dashboard")
@@ -120,48 +136,28 @@ with tab1:
     # --- Response Rate progress bar ---
     st.plotly_chart(plot_response_rate_bar(avg_response, targets['Response rate']), use_container_width=True)
 
-    # --- Per recruiter breakdown met individuele kleuren en targetlijnen ---
+    # --- Per recruiter breakdown ---
     st.subheader("Per Recruiter Breakdown")
     col1, col2, col3, col4 = st.columns(4)
 
     # InMails
     with col1:
-        fig_inmails = px.bar(
-            recdata, x="Name", y="InMails", color="Name",
-            color_discrete_map=color_map, height=300
-        )
-        fig_inmails.update_layout(yaxis=dict(range=[0,200]), title="InMails per Recruiter")
-        fig_inmails.add_hline(y=100, line_dash="dash", line_color="red", line_width=3)
+        fig_inmails = bar_chart_with_target(recdata['InMails'], y_max=200, target=100, title="InMails per Recruiter")
         st.plotly_chart(fig_inmails, use_container_width=True)
 
     # Cold Calls
     with col2:
-        fig_coldcalls = px.bar(
-            recdata, x="Name", y="Cold call", color="Name",
-            color_discrete_map=color_map, height=300
-        )
-        fig_coldcalls.update_layout(yaxis=dict(range=[0,100]), title="Cold Calls per Recruiter")
-        fig_coldcalls.add_hline(y=20, line_dash="dash", line_color="red", line_width=3)
+        fig_coldcalls = bar_chart_with_target(recdata['Cold call'], y_max=100, target=20, title="Cold Calls per Recruiter")
         st.plotly_chart(fig_coldcalls, use_container_width=True)
 
-    # Response Rate (%)
+    # Response Rate
     with col3:
-        fig_response = px.bar(
-            recdata, x="Name", y=recdata["Response rate"]*100, color="Name",
-            color_discrete_map=color_map, height=300
-        )
-        fig_response.update_layout(yaxis=dict(range=[0,100], title="%"), title="Response Rate per Recruiter")
-        fig_response.add_hline(y=25, line_dash="dash", line_color="red", line_width=3)
+        fig_response = bar_chart_with_target(recdata['Response rate']*100, y_max=100, target=25, title="Response Rate per Recruiter")
         st.plotly_chart(fig_response, use_container_width=True)
 
     # Qualification
     with col4:
-        fig_qualification = px.bar(
-            recdata, x="Name", y="Qualification", color="Name",
-            color_discrete_map=color_map, height=300
-        )
-        fig_qualification.update_layout(yaxis=dict(range=[0,30]), title="Qualification per Recruiter")
-        fig_qualification.add_hline(y=15, line_dash="dash", line_color="red", line_width=3)
+        fig_qualification = bar_chart_with_target(recdata['Qualification'], y_max=30, target=15, title="Qualification per Recruiter")
         st.plotly_chart(fig_qualification, use_container_width=True)
 
 with tab2:
