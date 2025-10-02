@@ -64,8 +64,8 @@ def plot_donut(kpi_name, avg_value, target, title):
         hole=0.5,
         color_discrete_sequence=["#636EFA", "#E5ECF6"],
     )
-    # Start de donut vanaf 12 uur
-    fig.update_traces(rotation=180, textinfo='percent+label', sort=False)
+    # Start de donut bovenin (12 uur)
+    fig.update_traces(rotation=90, textinfo='percent+label', sort=False)
     fig.update_layout(title_text=title)
     return fig
 
