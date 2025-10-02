@@ -55,11 +55,12 @@ targets = {
     "Qualification": 15
 }
 
-# ===== Function to create consistent clockwise donut chart =====
+# ===== Function to create clockwise donut starting at 12 uur =====
 def plot_donut(kpi_name, avg_value, target, title):
     achieved = min(avg_value, target)
     remaining = max(target - avg_value, 0)
     
+    # Zorg dat behaalde waarde altijd eerste staat
     values = [achieved, remaining]
     names = [kpi_name, "Nog te behalen"]
     colors = ["#636EFA", "#E5ECF6"]  # blauw = behaald, lichtblauw = restant
@@ -70,9 +71,10 @@ def plot_donut(kpi_name, avg_value, target, title):
         hole=0.5,
         color=names,
         color_discrete_map={kpi_name: colors[0], "Nog te behalen": colors[1]},
-        category_orders={kpi_name: [kpi_name, "Nog te behalen"]}  # vaste volgorde
     )
-    fig.update_traces(textinfo='percent+label', direction='clockwise', rotation=90)
+    
+    # Clockwise, start bovenaan (12 uur)
+    fig.update_traces(textinfo='percent+label', direction='clockwise', sort=False, rotation=90)
     fig.update_layout(title_text=title)
     return fig
 
