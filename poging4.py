@@ -78,11 +78,12 @@ def plot_donut(kpi_name, value, target, title, color="#636EFA"):
 # ===== Function to create response rate progress bar =====
 def plot_response_rate_bar(avg_value, target, title):
     fig = go.Figure()
+    color = "#00CC96" if avg_value >= target else "#EF553B"
     fig.add_trace(go.Bar(
         x=[avg_value*100],
         y=[""],
         orientation='h',
-        marker=dict(color="#00CC96"),
+        marker=dict(color=color),
         width=0.6
     ))
     fig.add_shape(
@@ -100,6 +101,22 @@ def plot_response_rate_bar(avg_value, target, title):
         margin=dict(l=20, r=20, t=60, b=20),
         title=dict(text=title, x=0.5, xanchor='center', yanchor='top')
     )
+    return fig
+
+# ===== Function to create colored bar charts with target lines =====
+def colored_bar_chart(data, x_col, y_col, title, target, height=300, is_percentage=False):
+    colors = ["#00CC96" if v >= target else "#EF553B" for v in data[y_col]]
+    fig = px.bar(data, x=x_col, y=y_col, title=title, height=height, color=data[y_col], color_discrete_map="identity")
+    # Target lijn
+    fig.add_shape(
+        type="line",
+        x0=-0.5, x1=len(data[x_col])-0.5,
+        y0=target, y1=target,
+        line=dict(color="red", width=3, dash="dash")
+    )
+    # Y-as instellingen
+    y_max = max(data[y_col].max(), target)
+    fig.update_yaxes(range=[0, y_max*1.2], tickformat=".0%" if is_percentage else None)
     return fig
 
 # ===== Streamlit layout =====
@@ -131,56 +148,28 @@ with tab1:
                                                   f"Gemiddelde Response Rate ({week_label})")
     st.plotly_chart(fig_avg_response_bar, use_container_width=True)
 
-    # --- Per recruiter breakdown met targetlijnen ---
+    # --- Per recruiter breakdown met targetlijnen en kleur ---
     st.subheader(f"Per Recruiter Breakdown ({week_label})")
     col1, col2, col3, col4 = st.columns(4)
 
     # InMails
     with col1:
-        fig_inmails = px.bar(filtered_data, x="Name", y="InMails", title="InMails per Recruiter", height=300)
-        fig_inmails.add_shape(
-            type="line",
-            x0=-0.5, x1=len(filtered_data['Name'])-0.5,
-            y0=targets["InMails"], y1=targets["InMails"],
-            line=dict(color="red", width=3, dash="dash")
-        )
-        fig_inmails.update_yaxes(range=[0, max(filtered_data['InMails'].max(), targets["InMails"])+20])
+        fig_inmails = colored_bar_chart(filtered_data, "Name", "InMails", "InMails per Recruiter", targets["InMails"])
         st.plotly_chart(fig_inmails, use_container_width=True)
 
     # Cold Calls
     with col2:
-        fig_coldcalls = px.bar(filtered_data, x="Name", y="Cold call", title="Cold Calls per Recruiter", height=300)
-        fig_coldcalls.add_shape(
-            type="line",
-            x0=-0.5, x1=len(filtered_data['Name'])-0.5,
-            y0=targets["Cold call"], y1=targets["Cold call"],
-            line=dict(color="red", width=3, dash="dash")
-        )
-        fig_coldcalls.update_yaxes(range=[0, max(filtered_data['Cold call'].max(), targets["Cold call"])+20])
+        fig_coldcalls = colored_bar_chart(filtered_data, "Name", "Cold call", "Cold Calls per Recruiter", targets["Cold call"])
         st.plotly_chart(fig_coldcalls, use_container_width=True)
 
     # Response Rate
     with col3:
-        fig_response = px.bar(filtered_data, x="Name", y="Response rate", title="Response Rate per Recruiter", height=300)
-        fig_response.add_shape(
-            type="line",
-            x0=-0.5, x1=len(filtered_data['Name'])-0.5,
-            y0=targets["Response rate"], y1=targets["Response rate"],
-            line=dict(color="red", width=3, dash="dash")
-        )
-        fig_response.update_yaxes(range=[0, 1], tickformat=".0%")
+        fig_response = colored_bar_chart(filtered_data, "Name", "Response rate", "Response Rate per Recruiter", targets["Response rate"], is_percentage=True)
         st.plotly_chart(fig_response, use_container_width=True)
 
     # Qualification
     with col4:
-        fig_qualification = px.bar(filtered_data, x="Name", y="Qualification", title="Qualification per Recruiter", height=300)
-        fig_qualification.add_shape(
-            type="line",
-            x0=-0.5, x1=len(filtered_data['Name'])-0.5,
-            y0=targets["Qualification"], y1=targets["Qualification"],
-            line=dict(color="red", width=3, dash="dash")
-        )
-        fig_qualification.update_yaxes(range=[0, max(filtered_data['Qualification'].max(), targets["Qualification"])+5])
+        fig_qualification = colored_bar_chart(filtered_data, "Name", "Qualification", "Qualification per Recruiter", targets["Qualification"])
         st.plotly_chart(fig_qualification, use_container_width=True)
 
 with tab2:
