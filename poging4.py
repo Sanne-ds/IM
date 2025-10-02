@@ -43,10 +43,13 @@ targets = {
     "Qualification": 15
 }
 
-# ===== Function to create donut chart =====
+# ===== Function to create donut chart with central percentage =====
 def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
     remaining = max(target - avg_value, 0)
     values = [min(avg_value, target), remaining]
+
+    percent_achieved = min(avg_value / target * 100, 100) if target > 0 else 0
+
     fig = px.pie(
         names=[kpi_name, "Nog te behalen"],
         values=values,
@@ -54,24 +57,36 @@ def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
         color_discrete_sequence=[color, "#E5ECF6"],
         height=300
     )
-    fig.update_traces(textinfo='percent+label', sort=False)
-    fig.update_layout(title_text=title, margin=dict(t=40,b=0,l=0,r=0))
+
+    # Verwijder labels van segmenten
+    fig.update_traces(textinfo='none', sort=False)
+
+    # Voeg percentage in het midden toe
+    fig.add_annotation(
+        text=f"{percent_achieved:.0f}%",
+        x=0.5, y=0.5,
+        font_size=28,
+        showarrow=False
+    )
+
+    fig.update_layout(
+        title_text=title,
+        margin=dict(t=40, b=0, l=0, r=0)
+    )
+
     return fig
 
 # ===== Function to create response rate progress bar =====
 def plot_response_rate_bar(avg_value, target):
     fig = go.Figure()
-
-    # Huidige waarde
     fig.add_trace(go.Bar(
         x=[avg_value*100],
-        y=[""],  # lege y-as label, we tonen alleen de bar
+        y=[""],
         orientation='h',
         marker=dict(color="#00CC96"),
-        width=0.6  # maak de bar dikker
+        width=0.6
     ))
 
-    # Target als verticale lijn
     fig.add_shape(
         type="line",
         x0=target*100, x1=target*100,
@@ -80,18 +95,16 @@ def plot_response_rate_bar(avg_value, target):
         xref="x", yref="y"
     )
 
-    # Layout
     fig.update_layout(
         xaxis=dict(range=[0,100], title="Percentage (%)"),
         yaxis=dict(showticklabels=False),
         showlegend=False,
-        height=150,  # verhoog totale figure height
-        margin=dict(l=20, r=20, t=60, b=20),  # top marge groter voor titel
+        height=150,
+        margin=dict(l=20, r=20, t=60, b=20),
         title=dict(text="Gemiddelde Response Rate", x=0.5, xanchor='center', yanchor='top')
     )
 
     return fig
-
 
 # ===== Streamlit layout =====
 st.set_page_config(page_title="Recruitment KPI Dashboard", layout="wide")
