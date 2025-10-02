@@ -33,31 +33,43 @@ recdata = recdata[recdata["Name"].str.lower() != "eindtotaal"]
 week_options = ['Afgelopen maand'] + sorted(recdata['Week'].unique().tolist())
 selected_week = st.selectbox("Selecteer week", week_options)  # dropdown menu
 
-# Filter de data op geselecteerde week of afgelopen maand
+# ===== Filter en bereken KPI's =====
 if selected_week != 'Afgelopen maand':
+    # Specifieke week
     filtered_data = recdata[recdata['Week'] == int(selected_week)]
     week_label = f"Week {selected_week}"
-    multiplier = 1  # streefwaarden normaal
+    
+    # gemiddelden per week
+    avg_inmails = filtered_data["InMails"].mean()
+    avg_coldcalls = filtered_data["Cold call"].mean()
+    avg_qualification = filtered_data["Qualification"].mean()
+    avg_response = filtered_data["Response rate"].mean()
+    
+    targets = {
+        "InMails": 150,
+        "Cold call": 20,
+        "Response rate": 0.25,
+        "Qualification": 15
+    }
+
 else:
-    # Neem de laatste 4 weken
+    # Afgelopen maand = laatste 4 weken
     last_weeks = sorted(recdata['Week'].unique())[-4:]
     filtered_data = recdata[recdata['Week'].isin(last_weeks)]
     week_label = "Afgelopen maand"
-    multiplier = 4  # streefwaarden maal 4
+    
+    # totaal KPI's over de 4 weken
+    avg_inmails = filtered_data["InMails"].sum()
+    avg_coldcalls = filtered_data["Cold call"].sum()
+    avg_qualification = filtered_data["Qualification"].sum()
+    avg_response = filtered_data["Response rate"].mean()  # percentage blijft gemiddelde
 
-# ===== Define targets =====
-targets = {
-    "InMails": 150 * multiplier,
-    "Cold call": 20 * multiplier,
-    "Response rate": 0.25,  # percentage blijft gelijk
-    "Qualification": 15 * multiplier
-}
-
-# ===== Calculate averages =====
-avg_inmails = filtered_data["InMails"].mean()
-avg_coldcalls = filtered_data["Cold call"].mean()
-avg_response = filtered_data["Response rate"].mean()
-avg_qualification = filtered_data["Qualification"].mean()
+    targets = {
+        "InMails": 150 * 4,
+        "Cold call": 20 * 4,
+        "Response rate": 0.25,
+        "Qualification": 15 * 4
+    }
 
 # ===== Function to create donut chart with central percentage =====
 def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
@@ -74,10 +86,8 @@ def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
         height=300
     )
 
-    # Verwijder labels van segmenten
     fig.update_traces(textinfo='none', sort=False)
 
-    # Voeg percentage in het midden toe
     fig.add_annotation(
         text=f"{percent_achieved:.0f}%",
         x=0.5, y=0.5,
@@ -131,7 +141,7 @@ tab1, tab2 = st.tabs(["Input KPI's", "Output KPI's"])
 with tab1:
     st.header("Input KPI's")
 
-    # --- Gemiddelde KPI's als donut charts in 3 kolommen ---
+    # --- Gemiddelde KPI's als donut charts ---
     col1, col2, col3 = st.columns(3)
     with col1:
         fig_avg_inmails = plot_donut("InMails", avg_inmails, targets["InMails"], f"Gemiddelde InMails ({week_label})", color="#636EFA")
@@ -143,7 +153,7 @@ with tab1:
         fig_avg_qualification = plot_donut("Qualification", avg_qualification, targets["Qualification"], f"Gemiddelde Kwalificatiecalls ({week_label})", color="#AB63FA")
         st.plotly_chart(fig_avg_qualification, use_container_width=True)
 
-    # --- Gemiddelde Response Rate progressbar in eigen rij ---
+    # --- Gemiddelde Response Rate progressbar ---
     fig_avg_response_bar = plot_response_rate_bar(avg_response, targets['Response rate'], f"Gemiddelde Response Rate ({week_label})")
     st.plotly_chart(fig_avg_response_bar, use_container_width=True)
 
