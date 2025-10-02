@@ -80,7 +80,7 @@ def plot_response_rate_bar(avg_value, target):
         yaxis=dict(showticklabels=False),
         showlegend=False,
         height=100,
-        margin=dict(l=20, r=20, t=30, b=20),
+        margin=dict(l=20, r=20, t=50, b=20),
         title="Gemiddelde Response Rate"
     )
     return fig
