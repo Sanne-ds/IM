@@ -50,7 +50,7 @@ targets = {
     "Qualification": 15
 }
 
-chart_title_prefix = "Gemiddelde"
+chart_title_prefix = "Voortgang Gemiddelde"
 
 # ===== Function to create donut chart =====
 def plot_donut(kpi_name, value, target, title, color="#636EFA"):
