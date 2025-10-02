@@ -116,8 +116,13 @@ with tab1:
         fig_coldcalls = px.bar(recdata, x="Name", y="Cold call", title="Cold Calls per Recruiter")
         st.plotly_chart(fig_coldcalls, use_container_width=True)
     with col3:
-        fig_response = px.bar(recdata, x="Name", y="Response rate", title="Response Rate per Recruiter")
-        st.plotly_chart(fig_response, use_container_width=True)
+        # Toon gemiddelde response rate als percentage
+        st.metric(
+            label="Gemiddelde Response Rate",
+            value=f"{avg_response*100:.1f}%",
+            delta=f"{targets['Response rate']*100:.0f}% doel"
+        )
+
     with col4:
         fig_qualification = px.bar(recdata, x="Name", y="Qualification", title="Qualification per Recruiter")
         st.plotly_chart(fig_qualification, use_container_width=True)
