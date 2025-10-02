@@ -1,7 +1,6 @@
 # ===== Import libraries =====
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
 import plotly.express as px
 
 # ===== Load & preprocess data =====
@@ -56,21 +55,17 @@ targets = {
     "Qualification": 15
 }
 
-# ===== Function to create clockwise donut starting at 12 uur using go.Pie =====
+# ===== Function to create donut chart =====
 def plot_donut(kpi_name, avg_value, target, title):
-    achieved = min(avg_value, target)
     remaining = max(target - avg_value, 0)
-
-    fig = go.Figure(go.Pie(
-        labels=[kpi_name, "Nog te behalen"],
-        values=[achieved, remaining],
+    fig = px.pie(
+        names=[kpi_name, f"Nog te behalen"],
+        values=[avg_value, remaining],
         hole=0.5,
-        marker_colors=["#636EFA", "#E5ECF6"],
-        direction='clockwise',
-        sort=False,
-        rotation=90,  # start bovenaan (12 uur)
-        textinfo='percent+label'
-    ))
+        color_discrete_sequence=["#636EFA", "#E5ECF6"],
+    )
+    # Start de donut vanaf 12 uur
+    fig.update_traces(rotation=180, textinfo='percent+label', sort=False)
     fig.update_layout(title_text=title)
     return fig
 
@@ -122,7 +117,6 @@ with tab1:
     with col4:
         fig_qualification = px.bar(recdata, x="Name", y="Qualification", title="Qualification per Recruiter")
         st.plotly_chart(fig_qualification, use_container_width=True)
-
 
 with tab2:
     st.header("Output KPI's")
