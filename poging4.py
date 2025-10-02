@@ -55,7 +55,7 @@ targets = {
     "Qualification": 15
 }
 
-# ===== Function to create donut chart with consistent colors =====
+# ===== Function to create donut chart with fixed gray for "Nog te behalen" =====
 def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
     """
     kpi_name: str, naam van de KPI
@@ -64,12 +64,17 @@ def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
     title: str, titel van de grafiek
     color: str, kleur voor het behaalde gedeelte
     """
+    # Behaald gedeelte mag niet groter zijn dan target
+    achieved = min(avg_value, target)
+    # Nog te behalen deel
     remaining = max(target - avg_value, 0)
+
+    # Maak donut
     fig = px.pie(
         names=[kpi_name, "Nog te behalen"],
-        values=[avg_value, remaining],
+        values=[achieved, remaining],
         hole=0.5,
-        color_discrete_sequence=[color, "#E5ECF6"],  # Grijs voor niet behaalde
+        color_discrete_sequence=[color, "#E5ECF6"],  # Grijs voor nog te behalen
     )
     fig.update_traces(textinfo='percent+label')
     fig.update_layout(title_text=title)
