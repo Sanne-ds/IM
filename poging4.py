@@ -55,7 +55,7 @@ targets = {
     "Qualification": 15
 }
 
-# ===== Function to create consistent donut chart =====
+# ===== Function to create consistent clockwise donut chart =====
 def plot_donut(kpi_name, avg_value, target, title):
     achieved = min(avg_value, target)
     remaining = max(target - avg_value, 0)
@@ -69,9 +69,10 @@ def plot_donut(kpi_name, avg_value, target, title):
         values=values,
         hole=0.5,
         color=names,
-        color_discrete_map={kpi_name: colors[0], "Nog te behalen": colors[1]}
+        color_discrete_map={kpi_name: colors[0], "Nog te behalen": colors[1]},
+        sort=False  # behoud volgorde
     )
-    fig.update_traces(textinfo='percent+label')
+    fig.update_traces(textinfo='percent+label', direction='clockwise', rotation=90)
     fig.update_layout(title_text=title)
     return fig
 
@@ -85,7 +86,7 @@ tab1, tab2 = st.tabs(["Input KPI's", "Output KPI's"])
 with tab1:
     st.header("Input KPI's")
 
-    # --- Gemiddelde KPI's als consistente donut charts ---
+    # --- Gemiddelde KPI's als donut charts ---
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
