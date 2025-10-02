@@ -63,10 +63,7 @@ def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
     title: str, titel van de grafiek
     color: str, kleur voor het behaalde gedeelte
     """
-    # Zorg dat remaining niet negatief wordt
     remaining = max(target - avg_value, 0)
-    
-    # Als avg_value > target, toon alleen target in behaalde kleur
     values = [min(avg_value, target), remaining]
     
     fig = px.pie(
@@ -100,8 +97,8 @@ with tab1:
         fig_avg_coldcalls = plot_donut("Cold Calls", avg_coldcalls, targets["Cold call"], "Gemiddelde Cold Calls", color="#EF553B")
         st.plotly_chart(fig_avg_coldcalls, use_container_width=True)
     with col3:
-        fig_avg_response = plot_donut("Response Rate", avg_response, targets["Response rate"], "Gemiddelde Response Rate", color="#00CC96")
-        st.plotly_chart(fig_avg_response, use_container_width=True)
+        # Toon gemiddelde response rate als tekst
+        st.markdown(f"### Gemiddelde Response Rate\n**{avg_response*100:.1f}% / {targets['Response rate']*100:.0f}% doel**")
     with col4:
         fig_avg_qualification = plot_donut("Qualification", avg_qualification, targets["Qualification"], "Gemiddelde Kwalificatiecalls", color="#AB63FA")
         st.plotly_chart(fig_avg_qualification, use_container_width=True)
@@ -116,13 +113,8 @@ with tab1:
         fig_coldcalls = px.bar(recdata, x="Name", y="Cold call", title="Cold Calls per Recruiter")
         st.plotly_chart(fig_coldcalls, use_container_width=True)
     with col3:
-        # Toon gemiddelde response rate als percentage
-        st.metric(
-            label="Gemiddelde Response Rate",
-            value=f"{avg_response*100:.1f}%",
-            delta=f"{targets['Response rate']*100:.0f}% doel"
-        )
-
+        fig_response = px.bar(recdata, x="Name", y="Response rate", title="Response Rate per Recruiter")
+        st.plotly_chart(fig_response, use_container_width=True)
     with col4:
         fig_qualification = px.bar(recdata, x="Name", y="Qualification", title="Qualification per Recruiter")
         st.plotly_chart(fig_qualification, use_container_width=True)
