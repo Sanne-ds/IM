@@ -30,30 +30,34 @@ recdata['Candidate employment'] = recdata['Introductions'].apply(lambda x: 1 if 
 recdata = recdata[recdata["Name"].str.lower() != "eindtotaal"]
 
 # ===== Week filter (dropdown menu) =====
-week_options = ['All time'] + sorted(recdata['Week'].unique().tolist())
-selected_week = st.selectbox("Selecteer week", week_options)  # wordt automatisch als dropdown weergegeven
+week_options = ['Afgelopen maand'] + sorted(recdata['Week'].unique().tolist())
+selected_week = st.selectbox("Selecteer week", week_options)  # dropdown menu
 
-# Filter de data op geselecteerde week
-if selected_week != 'All time':
+# Filter de data op geselecteerde week of afgelopen maand
+if selected_week != 'Afgelopen maand':
     filtered_data = recdata[recdata['Week'] == int(selected_week)]
     week_label = f"Week {selected_week}"
+    multiplier = 1  # streefwaarden normaal
 else:
-    filtered_data = recdata.copy()
-    week_label = "All time"
+    # Neem de laatste 4 weken
+    last_weeks = sorted(recdata['Week'].unique())[-4:]
+    filtered_data = recdata[recdata['Week'].isin(last_weeks)]
+    week_label = "Afgelopen maand"
+    multiplier = 4  # streefwaarden maal 4
+
+# ===== Define targets =====
+targets = {
+    "InMails": 150 * multiplier,
+    "Cold call": 20 * multiplier,
+    "Response rate": 0.25,  # percentage blijft gelijk
+    "Qualification": 15 * multiplier
+}
 
 # ===== Calculate averages =====
 avg_inmails = filtered_data["InMails"].mean()
 avg_coldcalls = filtered_data["Cold call"].mean()
 avg_response = filtered_data["Response rate"].mean()
 avg_qualification = filtered_data["Qualification"].mean()
-
-# ===== Define targets =====
-targets = {
-    "InMails": 150,
-    "Cold call": 20,
-    "Response rate": 0.25,
-    "Qualification": 15
-}
 
 # ===== Function to create donut chart with central percentage =====
 def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
