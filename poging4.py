@@ -44,9 +44,9 @@ avg_qualification = filtered_data["Qualification"].mean()
 avg_response = filtered_data["Response rate"].mean()
 
 targets = {
-    "InMails": 150,
-    "Cold call": 20,
-    "Response rate": 0.25,
+    "InMails": 100,
+    "Cold call": 120,
+    "Response rate": 0.2,
     "Qualification": 15
 }
 
@@ -131,20 +131,56 @@ with tab1:
                                                   f"Gemiddelde Response Rate ({week_label})")
     st.plotly_chart(fig_avg_response_bar, use_container_width=True)
 
-    # --- Per recruiter breakdown ---
+    # --- Per recruiter breakdown met targetlijnen ---
     st.subheader(f"Per Recruiter Breakdown ({week_label})")
     col1, col2, col3, col4 = st.columns(4)
+
+    # InMails
     with col1:
         fig_inmails = px.bar(filtered_data, x="Name", y="InMails", title="InMails per Recruiter", height=300)
+        fig_inmails.add_shape(
+            type="line",
+            x0=-0.5, x1=len(filtered_data['Name'])-0.5,
+            y0=targets["InMails"], y1=targets["InMails"],
+            line=dict(color="red", width=3, dash="dash")
+        )
+        fig_inmails.update_yaxes(range=[0, max(filtered_data['InMails'].max(), targets["InMails"])+20])
         st.plotly_chart(fig_inmails, use_container_width=True)
+
+    # Cold Calls
     with col2:
         fig_coldcalls = px.bar(filtered_data, x="Name", y="Cold call", title="Cold Calls per Recruiter", height=300)
+        fig_coldcalls.add_shape(
+            type="line",
+            x0=-0.5, x1=len(filtered_data['Name'])-0.5,
+            y0=targets["Cold call"], y1=targets["Cold call"],
+            line=dict(color="red", width=3, dash="dash")
+        )
+        fig_coldcalls.update_yaxes(range=[0, max(filtered_data['Cold call'].max(), targets["Cold call"])+20])
         st.plotly_chart(fig_coldcalls, use_container_width=True)
+
+    # Response Rate
     with col3:
         fig_response = px.bar(filtered_data, x="Name", y="Response rate", title="Response Rate per Recruiter", height=300)
+        fig_response.add_shape(
+            type="line",
+            x0=-0.5, x1=len(filtered_data['Name'])-0.5,
+            y0=targets["Response rate"], y1=targets["Response rate"],
+            line=dict(color="red", width=3, dash="dash")
+        )
+        fig_response.update_yaxes(range=[0, 1], tickformat=".0%")
         st.plotly_chart(fig_response, use_container_width=True)
+
+    # Qualification
     with col4:
         fig_qualification = px.bar(filtered_data, x="Name", y="Qualification", title="Qualification per Recruiter", height=300)
+        fig_qualification.add_shape(
+            type="line",
+            x0=-0.5, x1=len(filtered_data['Name'])-0.5,
+            y0=targets["Qualification"], y1=targets["Qualification"],
+            line=dict(color="red", width=3, dash="dash")
+        )
+        fig_qualification.update_yaxes(range=[0, max(filtered_data['Qualification'].max(), targets["Qualification"])+5])
         st.plotly_chart(fig_qualification, use_container_width=True)
 
 with tab2:
