@@ -1,8 +1,8 @@
 # ===== Import libraries =====
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
+import plotly.express as px
 
 # ===== Load & preprocess data =====
 recdata = pd.read_excel('KPI Team.xlsx', sheet_name='Blad1', header=1)
@@ -52,7 +52,7 @@ targets = {
 
 chart_title_prefix = "Gemiddelde"
 
-# ===== Function to create donut chart with central percentage =====
+# ===== Function to create donut chart =====
 def plot_donut(kpi_name, value, target, title, color="#636EFA"):
     remaining = max(target - value, 0)
     values = [min(value, target), remaining]
@@ -77,21 +77,19 @@ def plot_donut(kpi_name, value, target, title, color="#636EFA"):
 
 # ===== Function to create response rate progress bar =====
 def plot_response_rate_bar(avg_value, target, title):
-    fig = go.Figure()
     color = "#00CC96" if avg_value >= target else "#EF553B"
-    fig.add_trace(go.Bar(
+    fig = go.Figure(go.Bar(
         x=[avg_value*100],
         y=[""],
         orientation='h',
-        marker=dict(color=color),
+        marker_color=color,
         width=0.6
     ))
     fig.add_shape(
         type="line",
         x0=target*100, x1=target*100,
         y0=-0.5, y1=0.5,
-        line=dict(color="red", width=4, dash="dash"),
-        xref="x", yref="y"
+        line=dict(color="red", width=4, dash="dash")
     )
     fig.update_layout(
         xaxis=dict(range=[0,100], title="Percentage (%)"),
@@ -103,20 +101,26 @@ def plot_response_rate_bar(avg_value, target, title):
     )
     return fig
 
-# ===== Function to create colored bar charts with target lines =====
-def colored_bar_chart(data, x_col, y_col, title, target, height=300, is_percentage=False):
+# ===== Function to create colored bar charts per recruiter =====
+def colored_bar_chart(data, x_col, y_col, title, target, is_percentage=False):
     colors = ["#00CC96" if v >= target else "#EF553B" for v in data[y_col]]
-    fig = px.bar(data, x=x_col, y=y_col, title=title, height=height, color=data[y_col], color_discrete_map="identity")
-    # Target lijn
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=data[x_col],
+        y=data[y_col],
+        marker_color=colors,
+        text=[f"{v:.0%}" if is_percentage else str(v) for v in data[y_col]],
+        textposition='auto'
+    ))
     fig.add_shape(
         type="line",
         x0=-0.5, x1=len(data[x_col])-0.5,
         y0=target, y1=target,
         line=dict(color="red", width=3, dash="dash")
     )
-    # Y-as instellingen
     y_max = max(data[y_col].max(), target)
     fig.update_yaxes(range=[0, y_max*1.2], tickformat=".0%" if is_percentage else None)
+    fig.update_layout(title=title, height=300, showlegend=False)
     return fig
 
 # ===== Streamlit layout =====
@@ -152,22 +156,18 @@ with tab1:
     st.subheader(f"Per Recruiter Breakdown ({week_label})")
     col1, col2, col3, col4 = st.columns(4)
 
-    # InMails
     with col1:
         fig_inmails = colored_bar_chart(filtered_data, "Name", "InMails", "InMails per Recruiter", targets["InMails"])
         st.plotly_chart(fig_inmails, use_container_width=True)
 
-    # Cold Calls
     with col2:
         fig_coldcalls = colored_bar_chart(filtered_data, "Name", "Cold call", "Cold Calls per Recruiter", targets["Cold call"])
         st.plotly_chart(fig_coldcalls, use_container_width=True)
 
-    # Response Rate
     with col3:
         fig_response = colored_bar_chart(filtered_data, "Name", "Response rate", "Response Rate per Recruiter", targets["Response rate"], is_percentage=True)
         st.plotly_chart(fig_response, use_container_width=True)
 
-    # Qualification
     with col4:
         fig_qualification = colored_bar_chart(filtered_data, "Name", "Qualification", "Qualification per Recruiter", targets["Qualification"])
         st.plotly_chart(fig_qualification, use_container_width=True)
