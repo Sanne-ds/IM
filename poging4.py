@@ -55,14 +55,21 @@ targets = {
     "Qualification": 15
 }
 
-# ===== Function to create donut chart =====
+# ===== Function to create consistent donut chart =====
 def plot_donut(kpi_name, avg_value, target, title):
+    achieved = min(avg_value, target)
     remaining = max(target - avg_value, 0)
+    
+    values = [achieved, remaining]
+    names = [kpi_name, "Nog te behalen"]
+    colors = ["#636EFA", "#E5ECF6"]  # blauw = behaald, lichtblauw = restant
+
     fig = px.pie(
-        names=[kpi_name, f"Nog te behalen"],
-        values=[avg_value, remaining],
+        names=names,
+        values=values,
         hole=0.5,
-        color_discrete_sequence=["#636EFA", "#E5ECF6"],
+        color=names,
+        color_discrete_map={kpi_name: colors[0], "Nog te behalen": colors[1]}
     )
     fig.update_traces(textinfo='percent+label')
     fig.update_layout(title_text=title)
@@ -78,7 +85,7 @@ tab1, tab2 = st.tabs(["Input KPI's", "Output KPI's"])
 with tab1:
     st.header("Input KPI's")
 
-    # --- Gemiddelde KPI's als donut charts ---
+    # --- Gemiddelde KPI's als consistente donut charts ---
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
