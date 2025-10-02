@@ -120,8 +120,9 @@ with tab1:
         st.plotly_chart(fig_response, use_container_width=True)
 
     with col4:
-        fig_qualification = px.bar(recdata, x="Name", y="Qualification, title="Qualification per Recruiter")
+        fig_qualification = px.bar(recdata, x="Name", y="Qualification", title="Qualification per Recruiter")
         st.plotly_chart(fig_qualification, use_container_width=True)
+
 
 with tab2:
     st.header("Output KPI's")
