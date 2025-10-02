@@ -8,13 +8,13 @@ df = pd.read_excel("KPI Team.xlsx", header=2)  # Rij 3 bevat de kolomnamen
 # Verwijder eventuele rijen zoals 'Eindtotaal'
 df = df[df["Name"].str.lower() != "eindtotaal"]
 
-# Optioneel: kolomnamen opschonen (spaties verwijderen voor gemak)
+# Kolomnamen opschonen
 df.columns = df.columns.str.strip()
 
 # ===== Gemiddelden berekenen =====
-avg_inmails = df["InMails"].mean()
-avg_coldcalls = df["Cold call"].mean()
-avg_response = df["Response rate"].mean()
+avg_inmails = recdata["InMails"].mean()
+avg_coldcalls = recdata["Cold call"].mean()
+avg_response = recdata["Response rate"].mean()
 
 # Dataframe voor visualisatie van KPI's
 kpi_data = pd.DataFrame({
@@ -32,7 +32,7 @@ tab1, tab2 = st.tabs(["Input KPI's", "Output KPI's"])
 with tab1:
     st.header("Input KPI's")
 
-    # Bar chart van de gemiddelden
+    # Gemiddelde KPI's
     fig = px.bar(
         kpi_data,
         x="KPI",
@@ -49,14 +49,14 @@ with tab1:
         fig_inmails = px.bar(
             df,
             x="Name",
-            y="InMails",
+            y="Som van InMails",
             title="InMails per Recruiter"
         )
         st.plotly_chart(fig_inmails, use_container_width=True)
 
     with col2:
         fig_coldcalls = px.bar(
-            df,
+            recdata,
             x="Name",
             y="Cold call",
             title="Cold Calls per Recruiter"
@@ -67,7 +67,7 @@ with tab1:
         fig_response = px.bar(
             df,
             x="Name",
-            y="Response rate",
+            y="Gemiddelde van Response rate",
             title="Response Rate per Recruiter"
         )
         st.plotly_chart(fig_response, use_container_width=True)
