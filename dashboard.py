@@ -8,31 +8,22 @@ df = pd.read_excel("KPI Team.xlsx", header=2)  # Rij 3 bevat de kolomnamen
 # Verwijder eventuele rijen zoals 'Eindtotaal'
 df = df[df["Name"].str.lower() != "eindtotaal"]
 
-# Kolomnamen opschonen
-df.columns = df.columns.str.strip().str.lower()
-
-# Mapping van kolommen
-col_name_map = {
-    "name": "name",
-    "inmails": "som van inmails",
-    "coldcalls": "cold call",
-    "response": "gemiddelde van response rate"
-}
+# Optioneel: kolomnamen opschonen (spaties verwijderen voor gemak)
+df.columns = df.columns.str.strip()
 
 # ===== Gemiddelden berekenen =====
-avg_inmails = df[col_name_map["inmails"]].mean()
-avg_coldcalls = df[col_name_map["coldcalls"]].mean()
-avg_response = df[col_name_map["response"]].mean()
+avg_inmails = df["InMails"].mean()
+avg_coldcalls = df["Cold call"].mean()
+avg_response = df["Response rate"].mean()
 
-# Voor visualisaties: een dataframe met de KPI's
+# Dataframe voor visualisatie van KPI's
 kpi_data = pd.DataFrame({
-    "KPI": ["Inmails", "Cold calls", "Response rate"],
+    "KPI": ["InMails", "Cold call", "Response rate"],
     "Gemiddelde": [avg_inmails, avg_coldcalls, avg_response]
 })
 
 # ===== Streamlit Layout =====
 st.set_page_config(page_title="Recruitment KPI Dashboard", layout="wide")
-
 st.title("📊 Recruitment KPI Dashboard")
 
 # Tabs voor Input & Output
@@ -57,17 +48,17 @@ with tab1:
     with col1:
         fig_inmails = px.bar(
             df,
-            x=col_name_map["name"],
-            y=col_name_map["inmails"],
-            title="Inmails per Recruiter"
+            x="Name",
+            y="InMails",
+            title="InMails per Recruiter"
         )
         st.plotly_chart(fig_inmails, use_container_width=True)
 
     with col2:
         fig_coldcalls = px.bar(
             df,
-            x=col_name_map["name"],
-            y=col_name_map["coldcalls"],
+            x="Name",
+            y="Cold call",
             title="Cold Calls per Recruiter"
         )
         st.plotly_chart(fig_coldcalls, use_container_width=True)
@@ -75,8 +66,8 @@ with tab1:
     with col3:
         fig_response = px.bar(
             df,
-            x=col_name_map["name"],
-            y=col_name_map["response"],
+            x="Name",
+            y="Response rate",
             title="Response Rate per Recruiter"
         )
         st.plotly_chart(fig_response, use_container_width=True)
