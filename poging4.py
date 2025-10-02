@@ -29,11 +29,23 @@ recdata['Introductions to first contact ratio (%)'] = recdata.apply(
 recdata['Candidate employment'] = recdata['Introductions'].apply(lambda x: 1 if x > 3 else 0)
 recdata = recdata[recdata["Name"].str.lower() != "eindtotaal"]
 
+# ===== Week filter (dropdown menu) =====
+week_options = ['All time'] + sorted(recdata['Week'].unique().tolist())
+selected_week = st.selectbox("Selecteer week", week_options)  # wordt automatisch als dropdown weergegeven
+
+# Filter de data op geselecteerde week
+if selected_week != 'All time':
+    filtered_data = recdata[recdata['Week'] == int(selected_week)]
+    week_label = f"Week {selected_week}"
+else:
+    filtered_data = recdata.copy()
+    week_label = "All time"
+
 # ===== Calculate averages =====
-avg_inmails = recdata["InMails"].mean()
-avg_coldcalls = recdata["Cold call"].mean()
-avg_response = recdata["Response rate"].mean()
-avg_qualification = recdata["Qualification"].mean()
+avg_inmails = filtered_data["InMails"].mean()
+avg_coldcalls = filtered_data["Cold call"].mean()
+avg_response = filtered_data["Response rate"].mean()
+avg_qualification = filtered_data["Qualification"].mean()
 
 # ===== Define targets =====
 targets = {
@@ -77,7 +89,7 @@ def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
     return fig
 
 # ===== Function to create response rate progress bar =====
-def plot_response_rate_bar(avg_value, target):
+def plot_response_rate_bar(avg_value, target, title):
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=[avg_value*100],
@@ -101,7 +113,7 @@ def plot_response_rate_bar(avg_value, target):
         showlegend=False,
         height=150,
         margin=dict(l=20, r=20, t=60, b=20),
-        title=dict(text="Gemiddelde Response Rate", x=0.5, xanchor='center', yanchor='top')
+        title=dict(text=title, x=0.5, xanchor='center', yanchor='top')
     )
 
     return fig
@@ -118,33 +130,33 @@ with tab1:
     # --- Gemiddelde KPI's als donut charts in 3 kolommen ---
     col1, col2, col3 = st.columns(3)
     with col1:
-        fig_avg_inmails = plot_donut("InMails", avg_inmails, targets["InMails"], "Gemiddelde InMails", color="#636EFA")
+        fig_avg_inmails = plot_donut("InMails", avg_inmails, targets["InMails"], f"Gemiddelde InMails ({week_label})", color="#636EFA")
         st.plotly_chart(fig_avg_inmails, use_container_width=True)
     with col2:
-        fig_avg_coldcalls = plot_donut("Cold Calls", avg_coldcalls, targets["Cold call"], "Gemiddelde Cold Calls", color="#EF553B")
+        fig_avg_coldcalls = plot_donut("Cold Calls", avg_coldcalls, targets["Cold call"], f"Gemiddelde Cold Calls ({week_label})", color="#EF553B")
         st.plotly_chart(fig_avg_coldcalls, use_container_width=True)
     with col3:
-        fig_avg_qualification = plot_donut("Qualification", avg_qualification, targets["Qualification"], "Gemiddelde Kwalificatiecalls", color="#AB63FA")
+        fig_avg_qualification = plot_donut("Qualification", avg_qualification, targets["Qualification"], f"Gemiddelde Kwalificatiecalls ({week_label})", color="#AB63FA")
         st.plotly_chart(fig_avg_qualification, use_container_width=True)
 
     # --- Gemiddelde Response Rate progressbar in eigen rij ---
-    fig_avg_response_bar = plot_response_rate_bar(avg_response, targets['Response rate'])
+    fig_avg_response_bar = plot_response_rate_bar(avg_response, targets['Response rate'], f"Gemiddelde Response Rate ({week_label})")
     st.plotly_chart(fig_avg_response_bar, use_container_width=True)
 
     # --- Per recruiter breakdown ---
-    st.subheader("Per Recruiter Breakdown")
+    st.subheader(f"Per Recruiter Breakdown ({week_label})")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        fig_inmails = px.bar(recdata, x="Name", y="InMails", title="InMails per Recruiter", height=300)
+        fig_inmails = px.bar(filtered_data, x="Name", y="InMails", title="InMails per Recruiter", height=300)
         st.plotly_chart(fig_inmails, use_container_width=True)
     with col2:
-        fig_coldcalls = px.bar(recdata, x="Name", y="Cold call", title="Cold Calls per Recruiter", height=300)
+        fig_coldcalls = px.bar(filtered_data, x="Name", y="Cold call", title="Cold Calls per Recruiter", height=300)
         st.plotly_chart(fig_coldcalls, use_container_width=True)
     with col3:
-        fig_response = px.bar(recdata, x="Name", y="Response rate", title="Response Rate per Recruiter", height=300)
+        fig_response = px.bar(filtered_data, x="Name", y="Response rate", title="Response Rate per Recruiter", height=300)
         st.plotly_chart(fig_response, use_container_width=True)
     with col4:
-        fig_qualification = px.bar(recdata, x="Name", y="Qualification", title="Qualification per Recruiter", height=300)
+        fig_qualification = px.bar(filtered_data, x="Name", y="Qualification", title="Qualification per Recruiter", height=300)
         st.plotly_chart(fig_qualification, use_container_width=True)
 
 with tab2:
