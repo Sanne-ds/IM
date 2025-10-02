@@ -31,15 +31,14 @@ recdata = recdata[recdata["Name"].str.lower() != "eindtotaal"]
 
 # ===== Week filter (dropdown menu) =====
 week_options = ['Afgelopen maand'] + sorted(recdata['Week'].unique().tolist())
-selected_week = st.selectbox("Selecteer week", week_options)  # dropdown menu
+selected_week = st.selectbox("Selecteer week", week_options)
 
-# ===== Filter en bereken KPI's =====
+# ===== Bereken KPI's op basis van filter =====
 if selected_week != 'Afgelopen maand':
     # Specifieke week
     filtered_data = recdata[recdata['Week'] == int(selected_week)]
     week_label = f"Week {selected_week}"
-    
-    # gemiddelden per week
+    # Gemiddelde per week
     avg_inmails = filtered_data["InMails"].mean()
     avg_coldcalls = filtered_data["Cold call"].mean()
     avg_qualification = filtered_data["Qualification"].mean()
@@ -51,32 +50,33 @@ if selected_week != 'Afgelopen maand':
         "Response rate": 0.25,
         "Qualification": 15
     }
+    chart_title_prefix = "Gemiddelde"
 
 else:
     # Afgelopen maand = laatste 4 weken
     last_weeks = sorted(recdata['Week'].unique())[-4:]
     filtered_data = recdata[recdata['Week'].isin(last_weeks)]
     week_label = "Afgelopen maand"
-    
-    # totaal KPI's over de 4 weken
+    # Totaal KPI's over de 4 weken
     avg_inmails = filtered_data["InMails"].sum()
     avg_coldcalls = filtered_data["Cold call"].sum()
     avg_qualification = filtered_data["Qualification"].sum()
-    avg_response = filtered_data["Response rate"].mean()  # percentage blijft gemiddelde
-
+    avg_response = filtered_data["Response rate"].mean()  # percentage blijft gemiddeld
+    
     targets = {
         "InMails": 150 * 4,
         "Cold call": 20 * 4,
         "Response rate": 0.25,
         "Qualification": 15 * 4
     }
+    chart_title_prefix = "Totaal"
 
 # ===== Function to create donut chart with central percentage =====
-def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
-    remaining = max(target - avg_value, 0)
-    values = [min(avg_value, target), remaining]
+def plot_donut(kpi_name, value, target, title, color="#636EFA"):
+    remaining = max(target - value, 0)
+    values = [min(value, target), remaining]
 
-    percent_achieved = min(avg_value / target * 100, 100) if target > 0 else 0
+    percent_achieved = min(value / target * 100, 100) if target > 0 else 0
 
     fig = px.pie(
         names=[kpi_name, "Nog te behalen"],
@@ -87,14 +87,12 @@ def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
     )
 
     fig.update_traces(textinfo='none', sort=False)
-
     fig.add_annotation(
         text=f"{percent_achieved:.0f}%",
         x=0.5, y=0.5,
         font_size=28,
         showarrow=False
     )
-
     fig.update_layout(
         title_text=title,
         margin=dict(t=40, b=0, l=0, r=0)
@@ -112,7 +110,6 @@ def plot_response_rate_bar(avg_value, target, title):
         marker=dict(color="#00CC96"),
         width=0.6
     ))
-
     fig.add_shape(
         type="line",
         x0=target*100, x1=target*100,
@@ -120,7 +117,6 @@ def plot_response_rate_bar(avg_value, target, title):
         line=dict(color="red", width=4, dash="dash"),
         xref="x", yref="y"
     )
-
     fig.update_layout(
         xaxis=dict(range=[0,100], title="Percentage (%)"),
         yaxis=dict(showticklabels=False),
@@ -129,7 +125,6 @@ def plot_response_rate_bar(avg_value, target, title):
         margin=dict(l=20, r=20, t=60, b=20),
         title=dict(text=title, x=0.5, xanchor='center', yanchor='top')
     )
-
     return fig
 
 # ===== Streamlit layout =====
@@ -141,20 +136,24 @@ tab1, tab2 = st.tabs(["Input KPI's", "Output KPI's"])
 with tab1:
     st.header("Input KPI's")
 
-    # --- Gemiddelde KPI's als donut charts ---
+    # --- Gemiddelde/Totaal KPI's als donut charts ---
     col1, col2, col3 = st.columns(3)
     with col1:
-        fig_avg_inmails = plot_donut("InMails", avg_inmails, targets["InMails"], f"Gemiddelde InMails ({week_label})", color="#636EFA")
+        fig_avg_inmails = plot_donut("InMails", avg_inmails, targets["InMails"],
+                                     f"{chart_title_prefix} InMails ({week_label})", color="#636EFA")
         st.plotly_chart(fig_avg_inmails, use_container_width=True)
     with col2:
-        fig_avg_coldcalls = plot_donut("Cold Calls", avg_coldcalls, targets["Cold call"], f"Gemiddelde Cold Calls ({week_label})", color="#EF553B")
+        fig_avg_coldcalls = plot_donut("Cold Calls", avg_coldcalls, targets["Cold call"],
+                                       f"{chart_title_prefix} Cold Calls ({week_label})", color="#EF553B")
         st.plotly_chart(fig_avg_coldcalls, use_container_width=True)
     with col3:
-        fig_avg_qualification = plot_donut("Qualification", avg_qualification, targets["Qualification"], f"Gemiddelde Kwalificatiecalls ({week_label})", color="#AB63FA")
+        fig_avg_qualification = plot_donut("Qualification", avg_qualification, targets["Qualification"],
+                                           f"{chart_title_prefix} Kwalificatiecalls ({week_label})", color="#AB63FA")
         st.plotly_chart(fig_avg_qualification, use_container_width=True)
 
     # --- Gemiddelde Response Rate progressbar ---
-    fig_avg_response_bar = plot_response_rate_bar(avg_response, targets['Response rate'], f"Gemiddelde Response Rate ({week_label})")
+    fig_avg_response_bar = plot_response_rate_bar(avg_response, targets['Response rate'],
+                                                  f"Gemiddelde Response Rate ({week_label})")
     st.plotly_chart(fig_avg_response_bar, use_container_width=True)
 
     # --- Per recruiter breakdown ---
