@@ -99,8 +99,10 @@ colors = px.colors.qualitative.Set3
 colors = (colors * ((len(recruiters)//len(colors))+1))[:len(recruiters)]
 color_map = dict(zip(recruiters, colors))
 
-# ===== Function to create individual bar chart with target =====
-def bar_chart_with_target(y_values, y_max, target, title):
+# ===== Function to create individual bar chart with target and correct y-axis =====
+def bar_chart_with_target(y_values, target, title, y_max_suggested):
+    # Dynamische y_max: minimaal de target of gesuggereerde y_max, maar groter als hoogste waarde hoger is
+    y_max = max(y_values.max(), target, y_max_suggested)
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=recdata['Name'],
@@ -142,22 +144,22 @@ with tab1:
 
     # InMails
     with col1:
-        fig_inmails = bar_chart_with_target(recdata['InMails'], y_max=200, target=100, title="InMails per Recruiter")
+        fig_inmails = bar_chart_with_target(recdata['InMails'], target=100, title="InMails per Recruiter", y_max_suggested=200)
         st.plotly_chart(fig_inmails, use_container_width=True)
 
     # Cold Calls
     with col2:
-        fig_coldcalls = bar_chart_with_target(recdata['Cold call'], y_max=100, target=20, title="Cold Calls per Recruiter")
+        fig_coldcalls = bar_chart_with_target(recdata['Cold call'], target=20, title="Cold Calls per Recruiter", y_max_suggested=100)
         st.plotly_chart(fig_coldcalls, use_container_width=True)
 
-    # Response Rate
+    # Response Rate (%)
     with col3:
-        fig_response = bar_chart_with_target(recdata['Response rate']*100, y_max=100, target=25, title="Response Rate per Recruiter")
+        fig_response = bar_chart_with_target(recdata['Response rate']*100, target=25, title="Response Rate per Recruiter", y_max_suggested=100)
         st.plotly_chart(fig_response, use_container_width=True)
 
     # Qualification
     with col4:
-        fig_qualification = bar_chart_with_target(recdata['Qualification'], y_max=30, target=15, title="Qualification per Recruiter")
+        fig_qualification = bar_chart_with_target(recdata['Qualification'], target=15, title="Qualification per Recruiter", y_max_suggested=30)
         st.plotly_chart(fig_qualification, use_container_width=True)
 
 with tab2:
