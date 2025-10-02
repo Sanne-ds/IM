@@ -106,6 +106,12 @@ def plot_response_rate_bar(avg_value, target):
 
     return fig
 
+# ===== Create color mapping for individual recruiters =====
+recruiters = recdata['Name'].unique()
+colors = px.colors.qualitative.Set3  # 12 kleuren
+colors = (colors * ((len(recruiters)//len(colors))+1))[:len(recruiters)]
+color_map = dict(zip(recruiters, colors))
+
 # ===== Streamlit layout =====
 st.set_page_config(page_title="Recruitment KPI Dashboard", layout="wide")
 st.title("📊 Recruitment KPI Dashboard")
@@ -131,20 +137,32 @@ with tab1:
     fig_avg_response_bar = plot_response_rate_bar(avg_response, targets['Response rate'])
     st.plotly_chart(fig_avg_response_bar, use_container_width=True)
 
-    # --- Per recruiter breakdown ---
+    # --- Per recruiter breakdown met individuele kleuren ---
     st.subheader("Per Recruiter Breakdown")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        fig_inmails = px.bar(recdata, x="Name", y="InMails", title="InMails per Recruiter", height=300)
+        fig_inmails = px.bar(
+            recdata, x="Name", y="InMails", title="InMails per Recruiter",
+            color="Name", color_discrete_map=color_map, height=300
+        )
         st.plotly_chart(fig_inmails, use_container_width=True)
     with col2:
-        fig_coldcalls = px.bar(recdata, x="Name", y="Cold call", title="Cold Calls per Recruiter", height=300)
+        fig_coldcalls = px.bar(
+            recdata, x="Name", y="Cold call", title="Cold Calls per Recruiter",
+            color="Name", color_discrete_map=color_map, height=300
+        )
         st.plotly_chart(fig_coldcalls, use_container_width=True)
     with col3:
-        fig_response = px.bar(recdata, x="Name", y="Response rate", title="Response Rate per Recruiter", height=300)
+        fig_response = px.bar(
+            recdata, x="Name", y="Response rate", title="Response Rate per Recruiter",
+            color="Name", color_discrete_map=color_map, height=300
+        )
         st.plotly_chart(fig_response, use_container_width=True)
     with col4:
-        fig_qualification = px.bar(recdata, x="Name", y="Qualification", title="Qualification per Recruiter", height=300)
+        fig_qualification = px.bar(
+            recdata, x="Name", y="Qualification", title="Qualification per Recruiter",
+            color="Name", color_discrete_map=color_map, height=300
+        )
         st.plotly_chart(fig_qualification, use_container_width=True)
 
 with tab2:
