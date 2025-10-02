@@ -53,16 +53,19 @@ if selected_week != 'Afgelopen maand':
     chart_title_prefix = "Gemiddelde"
 
 else:
-    # Afgelopen maand = laatste 4 weken
-    last_weeks = sorted(recdata['Week'].unique())[-4:]
-    filtered_data = recdata[recdata['Week'].isin(last_weeks)]
+    # Afgelopen maand = laatste 28 dagen vanaf vandaag
+    today = pd.Timestamp.today()
+    start_date = today - pd.Timedelta(days=28)
+    filtered_data = recdata[(recdata['Begin datum'] >= start_date) & (recdata['Begin datum'] <= today)]
     week_label = "Afgelopen maand"
-    # Totaal KPI's over de 4 weken
+    
+    # totaal KPI's over de afgelopen 28 dagen
     avg_inmails = filtered_data["InMails"].sum()
     avg_coldcalls = filtered_data["Cold call"].sum()
     avg_qualification = filtered_data["Qualification"].sum()
     avg_response = filtered_data["Response rate"].mean()  # percentage blijft gemiddeld
     
+    # targets vermenigvuldigd met 4 (voor 4 weken)
     targets = {
         "InMails": 150 * 4,
         "Cold call": 20 * 4,
