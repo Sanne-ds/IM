@@ -30,55 +30,32 @@ recdata['Candidate employment'] = recdata['Introductions'].apply(lambda x: 1 if 
 recdata = recdata[recdata["Name"].str.lower() != "eindtotaal"]
 
 # ===== Week filter (dropdown menu) =====
-week_options = ['Afgelopen maand'] + sorted(recdata['Week'].unique().tolist())
+week_options = sorted(recdata['Week'].unique().tolist())
 selected_week = st.selectbox("Selecteer week", week_options)
 
-# ===== Bereken KPI's op basis van filter =====
-if selected_week != 'Afgelopen maand':
-    # Specifieke week
-    filtered_data = recdata[recdata['Week'] == int(selected_week)]
-    week_label = f"Week {selected_week}"
-    # Gemiddelde per week
-    avg_inmails = filtered_data["InMails"].mean()
-    avg_coldcalls = filtered_data["Cold call"].mean()
-    avg_qualification = filtered_data["Qualification"].mean()
-    avg_response = filtered_data["Response rate"].mean()
-    
-    targets = {
-        "InMails": 150,
-        "Cold call": 20,
-        "Response rate": 0.25,
-        "Qualification": 15
-    }
-    chart_title_prefix = "Gemiddelde"
+# ===== Filter data per geselecteerde week =====
+filtered_data = recdata[recdata['Week'] == int(selected_week)]
+week_label = f"Week {selected_week}"
 
-else:
-    # Afgelopen maand = laatste 28 dagen vanaf vandaag
-    today = pd.Timestamp.today()
-    start_date = today - pd.Timedelta(days=28)
-    filtered_data = recdata[(recdata['Begin datum'] >= start_date) & (recdata['Begin datum'] <= today)]
-    week_label = "Afgelopen maand"
-    
-    # totaal KPI's over de afgelopen 28 dagen
-    avg_inmails = filtered_data["InMails"].sum()
-    avg_coldcalls = filtered_data["Cold call"].sum()
-    avg_qualification = filtered_data["Qualification"].sum()
-    avg_response = filtered_data["Response rate"].mean()  # percentage blijft gemiddeld
-    
-    # targets vermenigvuldigd met 4 (voor 4 weken)
-    targets = {
-        "InMails": 150 * 4,
-        "Cold call": 20 * 4,
-        "Response rate": 0.25,
-        "Qualification": 15 * 4
-    }
-    chart_title_prefix = "Totaal"
+# ===== Bereken KPI's per week =====
+avg_inmails = filtered_data["InMails"].mean()
+avg_coldcalls = filtered_data["Cold call"].mean()
+avg_qualification = filtered_data["Qualification"].mean()
+avg_response = filtered_data["Response rate"].mean()
+
+targets = {
+    "InMails": 150,
+    "Cold call": 20,
+    "Response rate": 0.25,
+    "Qualification": 15
+}
+
+chart_title_prefix = "Gemiddelde"
 
 # ===== Function to create donut chart with central percentage =====
 def plot_donut(kpi_name, value, target, title, color="#636EFA"):
     remaining = max(target - value, 0)
     values = [min(value, target), remaining]
-
     percent_achieved = min(value / target * 100, 100) if target > 0 else 0
 
     fig = px.pie(
@@ -88,7 +65,6 @@ def plot_donut(kpi_name, value, target, title, color="#636EFA"):
         color_discrete_sequence=[color, "#E5ECF6"],
         height=300
     )
-
     fig.update_traces(textinfo='none', sort=False)
     fig.add_annotation(
         text=f"{percent_achieved:.0f}%",
@@ -96,11 +72,7 @@ def plot_donut(kpi_name, value, target, title, color="#636EFA"):
         font_size=28,
         showarrow=False
     )
-    fig.update_layout(
-        title_text=title,
-        margin=dict(t=40, b=0, l=0, r=0)
-    )
-
+    fig.update_layout(title_text=title, margin=dict(t=40, b=0, l=0, r=0))
     return fig
 
 # ===== Function to create response rate progress bar =====
@@ -139,7 +111,7 @@ tab1, tab2 = st.tabs(["Input KPI's", "Output KPI's"])
 with tab1:
     st.header("Input KPI's")
 
-    # --- Gemiddelde/Totaal KPI's als donut charts ---
+    # --- Donut charts per week ---
     col1, col2, col3 = st.columns(3)
     with col1:
         fig_avg_inmails = plot_donut("InMails", avg_inmails, targets["InMails"],
@@ -154,7 +126,7 @@ with tab1:
                                            f"{chart_title_prefix} Kwalificatiecalls ({week_label})", color="#AB63FA")
         st.plotly_chart(fig_avg_qualification, use_container_width=True)
 
-    # --- Gemiddelde Response Rate progressbar ---
+    # --- Response Rate ---
     fig_avg_response_bar = plot_response_rate_bar(avg_response, targets['Response rate'],
                                                   f"Gemiddelde Response Rate ({week_label})")
     st.plotly_chart(fig_avg_response_bar, use_container_width=True)
