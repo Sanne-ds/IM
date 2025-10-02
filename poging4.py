@@ -70,7 +70,7 @@ def plot_donut(kpi_name, avg_value, target, title):
         hole=0.5,
         color=names,
         color_discrete_map={kpi_name: colors[0], "Nog te behalen": colors[1]},
-        sort=False  # behoud volgorde
+        category_orders={kpi_name: [kpi_name, "Nog te behalen"]}  # vaste volgorde
     )
     fig.update_traces(textinfo='percent+label', direction='clockwise', rotation=90)
     fig.update_layout(title_text=title)
