@@ -61,13 +61,17 @@ def plot_donut(kpi_name, avg_value, target, title, color="#636EFA"):
 # ===== Function to create response rate progress bar =====
 def plot_response_rate_bar(avg_value, target):
     fig = go.Figure()
+
+    # Huidige waarde
     fig.add_trace(go.Bar(
         x=[avg_value*100],
-        y=["Response Rate"],
+        y=[""],  # lege y-as label, we tonen alleen de bar
         orientation='h',
         marker=dict(color="#00CC96"),
-        width=0.5
+        width=0.6  # maak de bar dikker
     ))
+
+    # Target als verticale lijn
     fig.add_shape(
         type="line",
         x0=target*100, x1=target*100,
@@ -75,15 +79,19 @@ def plot_response_rate_bar(avg_value, target):
         line=dict(color="red", width=4, dash="dash"),
         xref="x", yref="y"
     )
+
+    # Layout
     fig.update_layout(
         xaxis=dict(range=[0,100], title="Percentage (%)"),
         yaxis=dict(showticklabels=False),
         showlegend=False,
-        height=100,
-        margin=dict(l=20, r=20, t=50, b=20),
-        title="Gemiddelde Response Rate"
+        height=150,  # verhoog totale figure height
+        margin=dict(l=20, r=20, t=60, b=20),  # top marge groter voor titel
+        title=dict(text="Gemiddelde Response Rate", x=0.5, xanchor='center', yanchor='top')
     )
+
     return fig
+
 
 # ===== Streamlit layout =====
 st.set_page_config(page_title="Recruitment KPI Dashboard", layout="wide")
