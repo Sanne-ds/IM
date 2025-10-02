@@ -4,7 +4,14 @@ import pandas as pd
 import plotly.express as px
 
 # ===== Load & preprocess data =====
-recdata = pd.read_excel('KPI Team.xlsx', sheet_name='Blad1', header=1)
+# Let op: Zorg ervoor dat het Excel-bestand 'KPI Team.xlsx' in dezelfde map staat
+# of geef het juiste pad naar het bestand op.
+try:
+    recdata = pd.read_excel('KPI Team.xlsx', sheet_name='Blad1', header=1)
+except FileNotFoundError:
+    st.error("Bestand 'KPI Team.xlsx' niet gevonden. Zorg ervoor dat het bestand in de juiste map staat.")
+    st.stop()
+
 
 # Remove erroneous rows safely
 recdata = recdata.drop(index=[37, 38, 39, 40], errors='ignore')
@@ -63,7 +70,7 @@ kpi_colors = {
     "Qualification": "#AB63FA"
 }
 
-# ===== Function to create donut chart with fixed gray for "Nog te behalen" =====
+# ===== AANGEPASTE Functie om donut chart te maken met vaste grijze kleur =====
 def plot_donut(kpi_name, avg_value, target, title):
     """
     kpi_name: str, naam van de KPI
@@ -74,19 +81,35 @@ def plot_donut(kpi_name, avg_value, target, title):
     # Behaald en nog te behalen
     achieved = min(avg_value, target)
     remaining = max(target - avg_value, 0)
+    
+    # Maak een kleine DataFrame voor de data
+    df = pd.DataFrame({
+        "Categorie": [kpi_name, "Nog te behalen"],
+        "Waarde": [achieved, remaining]
+    })
 
     # Kleur ophalen uit vaste kleurenlijst
-    color = kpi_colors.get(kpi_name, "#636EFA")
+    color = kpi_colors.get(kpi_name, "#636EFA") # Fallback kleur
 
-    # Maak donut
+    # Maak de donut chart met expliciete kleurentoewijzing
     fig = px.pie(
-        names=[kpi_name, "Nog te behalen"],
-        values=[achieved, remaining],
+        df,
+        names="Categorie",
+        values="Waarde",
         hole=0.5,
-        color_discrete_sequence=[color, "#E5ECF6"],  # Grijs altijd voor nog te behalen
+        title=title,
+        # Gebruik 'color_discrete_map' om kleuren aan specifieke labels te koppelen
+        color_discrete_map={
+            kpi_name: color,
+            "Nog te behalen": "#D3D3D3"  # Lichtgrijs voor consistentie
+        }
     )
-    fig.update_traces(textinfo='percent+label')
-    fig.update_layout(title_text=title)
+    
+    # Optioneel: de legenda verbergen, omdat de labels al in de grafiek staan
+    fig.update_layout(showlegend=False, title_x=0.5) # Center title
+    # Zorgt ervoor dat de tekst in de slices altijd zichtbaar is
+    fig.update_traces(textinfo='percent', textposition='inside')
+
     return fig
 
 # ===== Streamlit layout =====
@@ -123,19 +146,19 @@ with tab1:
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        fig_inmails = px.bar(recdata, x="Name", y="InMails", title="InMails per Recruiter")
+        fig_inmails = px.bar(recdata, x="Name", y="InMails", title="InMails per Recruiter", color_discrete_sequence=[kpi_colors["InMails"]])
         st.plotly_chart(fig_inmails, use_container_width=True)
 
     with col2:
-        fig_coldcalls = px.bar(recdata, x="Name", y="Cold call", title="Cold Calls per Recruiter")
+        fig_coldcalls = px.bar(recdata, x="Name", y="Cold call", title="Cold Calls per Recruiter", color_discrete_sequence=[kpi_colors["Cold call"]])
         st.plotly_chart(fig_coldcalls, use_container_width=True)
 
     with col3:
-        fig_response = px.bar(recdata, x="Name", y="Response rate", title="Response Rate per Recruiter")
+        fig_response = px.bar(recdata, x="Name", y="Response rate", title="Response Rate per Recruiter", color_discrete_sequence=[kpi_colors["Response rate"]])
         st.plotly_chart(fig_response, use_container_width=True)
 
     with col4:
-        fig_qualification = px.bar(recdata, x="Name", y="Qualification", title="Qualification per Recruiter")
+        fig_qualification = px.bar(recdata, x="Name", y="Qualification", title="Qualification per Recruiter", color_discrete_sequence=[kpi_colors["Qualification"]])
         st.plotly_chart(fig_qualification, use_container_width=True)
 
 with tab2:
